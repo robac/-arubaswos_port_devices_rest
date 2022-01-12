@@ -22,7 +22,7 @@ class ArubaSW:
         params = {'userName': username, 'password': password}
         proxies = {'http': None, 'https': None}
 
-        url_login = self.get_url(self.data, "login-sessions")
+        url_login = self.get_url("login-sessions")
         response = requests.post(url_login, verify=False, data=json.dumps(params), proxies=proxies, timeout=3)
         if response.status_code == 201:
             print("Login to switch: {} is successful".format(url_login))
@@ -34,7 +34,7 @@ class ArubaSW:
 
 
     def logout(self):
-        url_login = self.get_url(self.data, "login-sessions")
+        url_login = self.get_url( "login-sessions")
         headers = {'cookie': self.data['cookie']}
         proxies = {'http': None, 'https': None}
         r = requests.delete(url_login, headers=headers, verify=False, proxies=proxies)
@@ -43,8 +43,10 @@ class ArubaSW:
         else:
             print("Logout is not successful", r.status_code)
 
-    def send_request(self, action, type="GET", entry_item):
-        if type
+    def send_request(self, action, method, entry_item):
+        method = method.upper()
+        if method != "GET":
+            raise Exception("Not supported method: {}".format(method))
         header = {'cookie': self.data['cookie']}
-        response = requests.get(self.get_url(self.data, action), headers=header, verify=False, timeout=2)
+        response = requests.get(self.get_url(action), headers=header, verify=False, timeout=2)
         return response.json()
