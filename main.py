@@ -1,10 +1,14 @@
 import argparse
+import os
 import pprint
+import sys
+
 from aruba.ArubaSW import *
 from tools import *
 
 MAC_IGNORE_TRESHOLD = 5
 INPUT_ARP_FILENAME = "data/arps.txt"
+EXCEL_OUTPUT_DIR = "c:\\users\\poch\desktop\\farmtec"
 
 def get_arguments():
     parser = argparse.ArgumentParser(description='Aruba SWOS REST tool.')
@@ -49,10 +53,24 @@ def print_ports(ports):
                     print()
     return
 
+def get_excel_filename(data):
+    return os.path.join(EXCEL_OUTPUT_DIR, "{}.{}".format(data['ip'], "xlsx"))
+
+def test_get(device, action, endapp=True):
+    res = device.send_request('/lldp/local-port', 'GET', '')
+    pprint.pprint(res)
+    if endapp:
+        device.logout()
+        sys.exit()
+    return
+
 def main():
     arguments = get_arguments()
-    device = ArubaSW(conn_data(arguments))
+    cdata = conn_data(arguments)
+    device = ArubaSW(cdata)
     device.login()
+
+    #test_get(device, '/lldp/local-port')
 
     try:
         devPatterns = tools.load_patterns()
@@ -60,9 +78,7 @@ def main():
         statuses = aruba.load_status(device)
         ports = aruba.load_ports(device, statuses)
         aruba.load_macs(device, ports, arps)
-        print_ports(ports)
-        pprint.pprint(device.data)
-
+        excel.export_excel(get_excel_filename(cdata), ports)
     except Exception as e:
         print(e)
     finally:
