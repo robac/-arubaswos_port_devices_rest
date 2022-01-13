@@ -12,7 +12,7 @@ class MacInfo:
         try:
             self.vendor = MacInfo.macLookup.lookup(self.mac)
         except:
-            self.vendor = "UNKNOWN"
+            self.vendor = None
 
     def setIP(self, ip):
         self.ip = ip
