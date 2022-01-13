@@ -7,7 +7,6 @@ from aruba.ArubaSW import *
 from tools import *
 
 MAC_IGNORE_TRESHOLD = 5
-INPUT_ARP_FILENAME = "data/arps.txt"
 EXCEL_OUTPUT_DIR = "c:\\users\\poch\desktop\\farmtec"
 
 def get_arguments():
