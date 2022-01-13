@@ -12,12 +12,15 @@ EXCEL_OUTPUT_DIR = "c:\\users\\poch\desktop\\farmtec"
 
 def get_arguments():
     parser = argparse.ArgumentParser(description='Aruba SWOS REST tool.')
-    parser.add_argument("-i", "--ip", action="store", dest="ip", required=True)
-    parser.add_argument("-p", "--password", action="store", dest="password", required=True)
-    parser.add_argument("-u", "--username", action="store", dest="username", required=True)
-    parser.add_argument('--ssl', dest='ssl', action='store_true')
-    parser.add_argument('--no-ssl', dest='ssl', action='store_false')
+    parser.add_argument("-i", action="store", dest="ip", required=True, help="switch IP address")
+    parser.add_argument("-p", action="store", dest="password", required=True, help="switch password")
+    parser.add_argument("-u", action="store", dest="username", required=True, help="switch username")
+    parser.add_argument('--ssl', dest='ssl', action='store_true', help="use SSL (default NO)")
+    parser.add_argument('--no-ssl', dest='ssl', action='store_false', help = "don't use SS (default NO).")
     parser.set_defaults(ssl=False)
+    parser.add_argument(
+        '-a', type=argparse.FileType('r'), default=sys.stdin, dest='arp_filename',
+        metavar='PATH', required=True, help="file with ARP records")
 
     arguments = parser.parse_args()
     return arguments
@@ -74,7 +77,7 @@ def main():
 
     try:
         devPatterns = tools.load_patterns()
-        arps = tools.read_arps_input(INPUT_ARP_FILENAME, devPatterns)
+        arps = tools.read_arps_input(arguments.arp_filename, devPatterns)
         statuses = aruba.load_status(device)
         ports = aruba.load_ports(device, statuses)
         aruba.load_macs(device, ports, arps)
