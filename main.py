@@ -19,9 +19,13 @@ def get_arguments():
     parser.set_defaults(ssl=False)
     parser.add_argument(
         '-a', type=argparse.FileType('r'), default=sys.stdin, dest='arp_filename',
-        metavar='PATH', required=True, help="file with ARP records")
+        required=True, help="file with ARP records")
+    parser.add_argument(
+        '-o', required=True, help='output directory', dest='output_dir',
+        metavar='DIR', type=lambda x: arghelper.is_valid_directory(parser, x))
 
     arguments = parser.parse_args()
+    print(arguments.output_dir)
     return arguments
 
 def conn_data(arguments):
@@ -55,8 +59,8 @@ def print_ports(ports):
                     print()
     return
 
-def get_excel_filename(data):
-    return os.path.join(EXCEL_OUTPUT_DIR, "{}.{}".format(data['ip'], "xlsx"))
+def get_excel_filename(data, arguments):
+    return os.path.join(arguments.output_dir, "{}.{}".format(data['ip'], "xlsx"))
 
 def test_get(device, action, endapp=True):
     res = device.send_request('/lldp/local-port', 'GET', '')
@@ -80,7 +84,7 @@ def main():
         statuses = aruba.load_status(device)
         ports = aruba.load_ports(device, statuses)
         aruba.load_macs(device, ports, arps)
-        excel.export_excel(get_excel_filename(cdata), ports)
+        excel.export_excel(get_excel_filename(cdata, arguments), ports)
     except Exception as e:
         print(e)
     finally:
