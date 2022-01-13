@@ -8,10 +8,12 @@ def load_macs(device, ports, arps):
         mac = MacInfo(item)
         if mac.mac in arps.keys():
             mac.setIP(arps[mac.mac])
-        if mac.port in ports.keys():
-            ports[mac.port].addMac(mac)
-        else:
-            print("Unknown port: {}".format(mac.port))
+        # add fake port, not obtained from REST
+        if mac.port not in ports.keys():
+            item['id'] = mac.port
+            item['name'] = "unknown port, added by MacInfo"
+            ports[mac.port] = PortInfo(item)
+        ports[mac.port].addMac(mac)
     return
 
 
