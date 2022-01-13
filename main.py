@@ -1,7 +1,7 @@
 import argparse
 import pprint
 from aruba.ArubaSW import *
-from tools.tools import *
+from tools import *
 
 MAC_IGNORE_TRESHOLD = 5
 INPUT_ARP_FILENAME = "data/arps.txt"
@@ -26,46 +26,6 @@ def conn_data(arguments):
     data['ssl'] = arguments.ssl
     return data
 
-
-
-
-
-def load_macs(device, ports, arps):
-    response = device.send_request('/mac-table', 'GET', 'port_element')
-
-    for item in response['mac_table_entry_element']:
-        mac = MacInfo(item)
-        if mac.mac in arps.keys():
-            mac.setIP(arps[mac.mac])
-        if mac.port in ports.keys():
-            ports[mac.port].addMac(mac)
-        else:
-            print("Unknown port: {}".format(mac.port))
-    return
-
-def read_arps_input(devPatterns):
-    input = open(INPUT_ARP_FILENAME, 'r')
-    lines = input.readlines()
-    arps = {}
-
-    for line in lines:
-        mac, ip, state = parse_arp(line, devPatterns.get_pattern_compiled('juniper_farmtec_getarp'))
-        if (state in ['VLD', 'STS']):
-            arps[mac] = ip
-    return arps
-
-def load_ports(device, statuses):
-    response = device.send_request('/ports', 'GET', 'port_element')
-    ports = {}
-
-    for i in response['port_element']:
-        port = PortInfo(i)
-        if port.id in statuses:
-            port.addStatus(statuses[port.id]['status'])
-        ports[port.id] = port
-    return ports
-
-
 def get_mac_ip_text(mac):
     if mac.ip is None:
         return "IP unknown"
@@ -78,9 +38,9 @@ def print_ports(ports):
         if port.status == "OPER_UP":
             print("Port {}".format(port.id))
             if len(port.macs) == 0:
-                print("NO MAC ADDRESS")
+                print("   NO MAC ADDRESS")
             elif len(port.macs) > MAC_IGNORE_TRESHOLD:
-                print ("TOO MANY ({}) MAC ADDRESSSES".format(len(port.macs)))
+                print ("   TOO MANY ({}) MAC ADDRESSSES".format(len(port.macs)))
             else:
                 for mac in port.macs:
                     print("   {}".format(mac.mac))
@@ -89,41 +49,24 @@ def print_ports(ports):
                     print()
     return
 
-
-
-def load_status(device):
-    response = device.send_request('/system/status/switch', 'GET', 'port_element')
-    statuses = {}
-
-    for i in response['blades']:
-        for port in i['data_ports']:
-            id = str(port['port_id'])
-            statuses[id] = {}
-            statuses[id]['status'] = port['operStatus']
-    return statuses
-
 def main():
     arguments = get_arguments()
     device = ArubaSW(conn_data(arguments))
     device.login()
 
     try:
-        """
-        response = device.send_request('/system/status/switch', 'GET', 'port_element')
-        pprint.pprint(response)
-        return
-"""
-        devPatterns = load_patterns()
-        arps = read_arps_input(devPatterns)
-        statuses = load_status(device)
-        ports = load_ports(device, statuses)
-        load_macs(device, ports, arps)
+        devPatterns = tools.load_patterns()
+        arps = tools.read_arps_input(INPUT_ARP_FILENAME, devPatterns)
+        statuses = aruba.load_status(device)
+        ports = aruba.load_ports(device, statuses)
+        aruba.load_macs(device, ports, arps)
         print_ports(ports)
+        pprint.pprint(device.data)
+
     except Exception as e:
         print(e)
     finally:
         device.logout()
-
 
 main()
 

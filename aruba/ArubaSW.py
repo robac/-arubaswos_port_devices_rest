@@ -28,18 +28,24 @@ class ArubaSW:
             print("Login to switch: {} is successful".format(url_login))
             session = response.json()
             self.data['cookie'] = session['cookie']
-            return
         else:
             print("Login to switch failed")
 
+        response = self.send_request('/session-idle-timeout', 'GET', '')
+        self.data['session-idle-timeout'] = response['timeout']
+
 
     def logout(self):
+        if 'cookie' not in self.data:
+            print("Probably not logged in. Ending...")
+            return
+
         url_login = self.get_url( "login-sessions")
         headers = {'cookie': self.data['cookie']}
         proxies = {'http': None, 'https': None}
         r = requests.delete(url_login, headers=headers, verify=False, proxies=proxies)
         if r.status_code == 204:
-            print("Logged out!", r.status_code)
+            print("Logged out!")
         else:
             print("Logout is not successful", r.status_code)
 
