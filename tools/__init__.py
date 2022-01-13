@@ -1,1 +1,1 @@
-__all__ = ["aruba", "excel", "tools", "PortInfo", "MacInfo", "DevicePattern"]
+__all__ = ["arghelper", "aruba", "excel", "tools", "PortInfo", "MacInfo", "DevicePattern"]
