@@ -22,6 +22,7 @@ def parse_arp(text, patternCompiled):
 def read_arps_input(file, devPatterns):
     #input = open(filename, 'r')
     lines = file.readlines()
+    file.close()
     arps = {}
 
     for line in lines:
